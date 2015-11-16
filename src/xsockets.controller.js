@@ -23,7 +23,7 @@ angular.module("xsockets").provider("xsocketsController", [
         this.deferred = {};
         this.listeners = [];
 
-        this.$get = ['$q', '$rootScope', function ($q, $rootScope) {
+        this.$get = ['$q', '$rootScope', '$timeout', function ($q, $rootScope, $timeout) {
             return function factory(controller,$scope) {
               
                 var self = this;
@@ -34,7 +34,7 @@ angular.module("xsockets").provider("xsocketsController", [
                 var listeners = provider.listeners;
                 var findListener = function (t, c) {
                     var match = listeners.filter(function (pre) { return pre.topic === t && pre.controller === c });
-                    console.log("found a listener for %s and % %s", t, c);
+                 
                     return match;
                 };
                 var unregisterListener = function (t, c) {
@@ -49,8 +49,8 @@ angular.module("xsockets").provider("xsocketsController", [
                     var listener = findListener(obj.T, obj.C, listeners);
                     if (listener) {
                         listener.forEach(function (l) {
-                            console.log("listener fn.apply for %s and %s", obj.T, obj.C);
-                            $rootScope.$apply(l.fn.apply(this, [obj.D, obj.C]));
+                           
+                            $rootScope.$apply(l.fn.apply(this, [ JSON.parse(obj.D), obj.C]));
                         });
                     }
                 };
@@ -92,8 +92,10 @@ angular.module("xsockets").provider("xsocketsController", [
                 })();
                 var send = function (data) {
                     if (provider.connection.readyState === 0) {
+                      
                         self.queue.push(data);
                     } else {
+
                         provider.connection.send(data);
                     }
                 };
@@ -159,7 +161,7 @@ angular.module("xsockets").provider("xsocketsController", [
                     }
                 };
                 registerListener(eventType.controller.onOpen, controller, function (event) {
-                    event = JSON.parse(event);
+                 
                     var ci = {
                         persistentId: event.PI,
                         connectionId: event.CI
@@ -178,6 +180,16 @@ angular.module("xsockets").provider("xsocketsController", [
                 send(new message(eventType.init, {
                     init: true
                 }, controller).toString());
+
+
+
+                $timeout(function () {
+                    self.queue.forEach(function(msg) {
+                        provider.connection.send(msg);
+                    });
+                    self.queue = [];
+                }, 1000);
+                
 
                 if ($scope) {
                     $scope.$on('$destroy', function (e) {
