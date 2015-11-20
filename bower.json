@@ -4,6 +4,8 @@
   "authors": [
     "Magnus Thor <magnus@xsockets.net>"
   ],
+  "ignore": [],
+  "version": "0.11",
   "description": "angularJS provider for XSockets.NET",
   "main": "src/xsockets.controller.js", "keywords": [
     "XSockets.NET",
