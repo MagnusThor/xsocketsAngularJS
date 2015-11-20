@@ -1,0 +1,14 @@
+{
+  "name": "xsocketsAngularJS",
+  "homepage": "https://github.com/MagnusThor/xsocketsAngularJS",
+  "authors": [
+    "Magnus Thor <magnus@xsockets.net>"
+  ],
+  "description": "angularJS provider for XSockets.NET",
+  "main": "src/xsockets.controller.js", "keywords": [
+    "XSockets.NET",
+    "angularJS",
+    "realtime"
+  ],
+  "license": "MIT"
+}
