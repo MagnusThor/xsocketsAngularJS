@@ -280,18 +280,21 @@ angular.module("xsockets").provider("xsocketsController", [
                         init: true
                     }, controller));
 
-                    // if there is a list of parameters
-
-                    if (arguments[2] instanceof Array) {
+                    if (arguments[1] instanceof Array) {
                         propertyList.forEach(function(prop) {
                             setProperty(prop.name, prop.value);
                         });
-                    };
-                    if (arguments[2] instanceof Object || (arguments.length === 3 && arguments[3] instanceof Object)) {
-                        $scope.$on('$destroy', function (e) {
+                    } else if (arguments.length === 2) {
+                        arguments[1].$on('$destroy', function(e) {
                             instance.close();
                         });
                     };
+                    if (arguments.length === 3) {
+                        arguments[2].$on('$destroy', function (e) {
+                            instance.close();
+                        });
+                    }
+                
                     return provider.deferred[controller].promise;
                 };
             }
