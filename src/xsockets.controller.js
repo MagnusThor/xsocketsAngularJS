@@ -1,6 +1,8 @@
 ﻿angular.module("xsockets", []);
 angular.module("xsockets").provider("xsocketsController", [
     function () {
+        var provider = this;
+        var self = this;
         var query = function (obj) {
             var str = "?";
             delete obj.C;
@@ -11,23 +13,60 @@ angular.module("xsockets").provider("xsocketsController", [
             return str;
         }
         var parameters = JSON.parse(localStorage.getItem("ci") ? localStorage.getItem("ci") : "{}");
-        var provider = this;
-        this.connection = undefined;
-        this.isConnected = false;
-        this.open =
-            function (url) {
-                this.connection = new window.WebSocket(url + query(parameters));
-                this.connection.binaryType = "arraybuffer";
-            };
-
         this.deferred = {};
         this.listeners = [];
-
+        this.queue = [];
+        this.connection = undefined;
+        this.isConnected = false;
+        this.createUrl  = function() {
+            throw "Not implemented";
+        }
+        this.open = function (url) {
+         
+            this.connection = new window.WebSocket(url + query(parameters));
+            this.connection.binaryType = "arraybuffer";
+            this.connection.onopen = function () {
+                self.queue.forEach(function(queuedMessage) {
+                    self.send(queuedMessage);
+                });
+                self.queue.length = 0;
+            };
+        };
+        this.connect = open; // just an alias
+        this.send = function (data) {
+            if (this.connection.readyState === 1) {
+                this.connection.send(data.toString());
+            } else {
+                this.queue.push(data);
+            }
+        };
         this.$get = [
-            '$q', '$rootScope', '$timeout', function ($q, $rootScope, $timeout) {
-                return function factory(controller, $scope) {
-                    var self = this;
+            '$q', '$rootScope', function ($q, $rootScope) {
+                return function factory(controller,propertyList, $scope) {
+                   var listeners = provider.listeners;
                     provider.deferred[controller] = new $q.defer();
+                    provider.connection.onmessage = function (event) {
+                        var listener, obj;
+                        if (typeof event.data === "string") {
+                            obj = JSON.parse(event.data);
+                            listener = findListener(obj.T, obj.C, listeners);
+                            if (listener) {
+                                listener.forEach(function (l) {
+                                    $rootScope.$apply(l.fn.apply(this, [JSON.parse(obj.D), obj.C]));
+                                });
+                            }
+                        } else {
+                            parseBinaryMessage(event.data, function (str, arrayBuffer) {
+                                obj = JSON.parse(str);
+                                listener = findListener(obj.T, obj.C, listeners);
+                                if (listener) {
+                                    listener.forEach(function (l) {
+                                        $rootScope.$apply(l.fn.apply(this, [JSON.parse(obj.D), arrayBuffer, obj.C]));
+                                    });
+                                }
+                            });
+                        }
+                    };
                     var eventType = {
                         init: "1",
                         ping: "7",
@@ -48,9 +87,6 @@ angular.module("xsockets").provider("xsocketsController", [
                             unsubscribe: "6"
                         }
                     };
-
-                    this.queue = [];
-                    var listeners = provider.listeners;
                     var findListener = function (t, c) {
                         var match = listeners.filter(function (pre) { return pre.topic === t && pre.controller === c });
                         return match;
@@ -71,7 +107,8 @@ angular.module("xsockets").provider("xsocketsController", [
                         }
                         return byteArray;
                     };
-                    var message = (function () {
+
+                    var Message = (function () {
                         var ctor = function (t, o, c) {
                             this.T = t ? t.toLowerCase() : undefined;
                             this.D = o;
@@ -87,9 +124,9 @@ angular.module("xsockets").provider("xsocketsController", [
                         };
                         return ctor;
                     })();
-                    var binaryMessage = (function () {
+                    var BinaryMessage = (function () {
                         var ctor = function (arrayBuffer, topic, data) {
-                            this.buffer = this.createBuffer(new message(topic, data, controller).toString(), arrayBuffer);
+                            this.buffer = this.createBuffer(new Message(topic, data, controller).toString(), arrayBuffer);
                         };
                         ctor.prototype.stringToBuffer = function (str) {
                             var i,
@@ -113,7 +150,7 @@ angular.module("xsockets").provider("xsocketsController", [
                         };
                         return ctor;
                     })();
-                    var extractMessage = function (arrayBuffer, cb) {
+                    var parseBinaryMessage = function (arrayBuffer, cb) {
                         var data = arrayBuffer; // .buffer
                         var ab2str = function (buf) {
                             return String.fromCharCode.apply(null, new Uint16Array(buf));
@@ -131,38 +168,37 @@ angular.module("xsockets").provider("xsocketsController", [
                         cb(ab2str(new Uint8Array(data, 8, payloadLength)), new Uint8Array(data, parseInt(offset), data.byteLength - offset), header);
                         return this;
                     };
-                    provider.connection.onmessage = function (event) {
-                       
-                        var listener,obj;
-                        if (typeof event.data === "string") {
-                         
-                            obj = JSON.parse(event.data);
-                            listener = findListener(obj.T, obj.C, listeners);
-                            if (listener) {
-                                listener.forEach(function (l) {
-                                
-                                    $rootScope.$apply(l.fn.apply(this, [JSON.parse(obj.D), obj.C]));
-                                });
-                            }
-                        } else {
-                            extractMessage(event.data, function (str, arrayBuffer) {
-                                obj = JSON.parse(str);
-                                listener = findListener(obj.T, obj.C, listeners);
-                                if (listener) {
-                                    listener.forEach(function (l) {
-                                        $rootScope.$apply(l.fn.apply(this, [JSON.parse(obj.D), arrayBuffer, obj.C]));
-                                    });
-                                }
-                            });
-                        }
+
+                    var send = function(data) {
+                        provider.send(data);
                     };
-                    var send = function (data) {
-                        if (provider.connection.readyState === 0) { 
-                            self.queue.push(data);
+
+                    var setProperty = function(name, value) {
+                        var data, property = "set_" + name.toLowerCase();
+                        if (value instanceof Array) {
+                            data = {
+                                value: value
+                            };
+                        } else if (value instanceof Object) {
+                            data = value;
                         } else {
-                            provider.connection.send(data);
+                            data = {
+                                value: value
+                            };
                         }
+                        send(new Message(property, data, controller));
                     };
+
+                    var close = function() {
+                        (listeners.filter(function(r) {
+                            r.controller = controller;
+                        })).forEach(function(match) {
+                            listeners.splice(match, 1);
+                        });
+                        send(new Message(eventType.controller.onClose, {}, controller));
+                    };
+                 
+                    // provider API
                     var instance = {
                         on: function (t, fn) {
                             var match = findListener(t, controller);
@@ -180,50 +216,42 @@ angular.module("xsockets").provider("xsocketsController", [
                             send(arrayBuffer);
                         },
                         createBinaryMessage: function (a, t, d) {
-                            return new binaryMessage(a, t, d);
+                            return new BinaryMessage(a, t, d);
                         },
-
                         invoke: function (t, d) {
-                            send(new message(t, d, controller));
+                            send(new Message(t, d, controller));
                         },
                         publish: function (t, d) {
-                            send(new message(t, d, controller));
+                            send(new Message(t, d, controller));
                         },
-                        close: function () {
-                            (listeners.filter(function (r) {
-                                r.controller = controller;
-                            })).forEach(function (match) {
-                                listeners.splice(match, 1);
-                            });
-                            send(new message(eventType.controller.onClose, {}, controller));
-                        },
+                        close: close,
                         subscribe: function (t, fn) {
-                            registerListener(t, controller);
-                            send(new message(eventType.pubSub.subscribe, { T: t }, controller));
+                            registerListener(t, controller,fn);
+                            send(new Message(eventType.pubSub.subscribe, { T: t }, controller));
                         },
                         unsubscribe: function (t) {
                             unregisterListener(t, controller);
-                            send(new message(eventType.pubSub.unsubscribe, { T: t }, controller));
+                            send(new Message(eventType.pubSub.unsubscribe, { T: t }, controller));
                         },
                         setEnum: function (name, value) {
                             var property = "set_" + name.toLowerCase();
-                            send(new message(property, value, controller));
+                            send(new Message(property, value, controller));
                         },
-                        setProperty: function (name, value) {
-                            var data,property = "set_" + name.toLowerCase();
-                            if (value instanceof Array) {
-                                data = {
-                                    value: value
-                                };
-                            } else if (value instanceof Object) {
-                                data = value;
-                            } else {
-                                data = {
-                                    value: value
-                                };
+                        storage: {
+                            set: function() {
+                                throw "Not implemented";
+                            },
+                            get: function() {
+                                throw "Not implemented";
+                            },
+                            clear: function() {
+                                throw "Not implemented";
+                            },
+                            remove: function() {
+                                throw "Not implemented";
                             }
-                            send(new message(property, data, controller));
                         },
+                        setProperty:  setProperty,
                         getListeners: function () {
                             return listeners.filter(function (p) {
                                 return p.controller === controller;
@@ -241,29 +269,29 @@ angular.module("xsockets").provider("xsocketsController", [
                     });
                     registerListener(eventType.controller.onClose, controller, function () {
                         instance.close();
-                        // todo: maybe rcall reject in defered?
                     });
+
                     registerListener(eventType.controller.onError, controller, function (err) {
                         provider.deferred[controller].reject(err);
                     });
 
                     // initialize the controller
-                    send(new message(eventType.init, {
+                    send(new Message(eventType.init, {
                         init: true
-                    }, controller).toString());
+                    }, controller));
 
-                    // todo: poll the readyState each second, using a interval instead
-                    $timeout(function () {
-                        self.queue.forEach(function (msg) {
-                            provider.connection.send(msg);
+                    // if there is a list of parameters
+
+                    if (arguments[2] instanceof Array) {
+                        propertyList.forEach(function(prop) {
+                            setProperty(prop.name, prop.value);
                         });
-                        self.queue = [];
-                    }, 1000);
-                    if ($scope) {
+                    };
+                    if (arguments[2] instanceof Object || (arguments.length === 3 && arguments[3] instanceof Object)) {
                         $scope.$on('$destroy', function (e) {
                             instance.close();
                         });
-                    }
+                    };
                     return provider.deferred[controller].promise;
                 };
             }
