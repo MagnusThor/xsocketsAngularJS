@@ -3,27 +3,27 @@ angular.module("xsockets").provider("xsocketsController", [
     function () {
         var provider = this;
         var self = this;
-        var query = function (obj) {
-            var str = "?";
-            delete obj.C;
-            Object.keys(obj).forEach(function (key) {
-                str += key + "=" + encodeURIComponent(parameters[key]) + "&";
-            });
-            str = str.slice(0, str.length - 1);
-            return str;
-        }
         var parameters = JSON.parse(localStorage.getItem("ci") ? localStorage.getItem("ci") : "{}");
         this.deferred = {};
         this.listeners = [];
         this.queue = [];
         this.connection = undefined;
         this.isConnected = false;
-        this.createUrl  = function() {
+        this.createUrl = function() {
             throw "Not implemented";
-        }
-        this.open = function (url) {
-         
-            this.connection = new window.WebSocket(url + query(parameters));
+        };
+        var query = function (obj) {
+            var str = "?";
+            delete obj.C;
+            Object.keys(obj).forEach(function (key) {
+                str += key + "=" + encodeURIComponent(obj[key]) + "&";
+            });
+            str = str.slice(0, str.length - 1);
+            return str;
+        };
+
+        this.open = function (url, params) {
+            this.connection = new window.WebSocket(url + query( angular.extend({},parameters, params )));
             this.connection.binaryType = "arraybuffer";
             this.connection.onopen = function () {
                 self.queue.forEach(function(queuedMessage) {
