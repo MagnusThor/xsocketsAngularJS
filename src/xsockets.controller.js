@@ -25,8 +25,9 @@ if ("angular" in window) {
     (function () {
         "use strict";
         angular.module("xsockets", []);
-        angular.module("xsockets").provider("xsocketsController", [
-            function () {
+        angular.module("xsockets").provider("xsocketsController", ['$injector',
+        function ($injector) {
+          
                 var provider = this,
                     self = this;
                 var parameters = JSON.parse(localStorage.getItem("ci") ? localStorage.getItem("ci") : "{}");
@@ -39,13 +40,31 @@ if ("angular" in window) {
                     str = str.slice(0, str.length - 1);
                     return str;
                 };
+                this.promises = {};
+                this.reconnects = 0;
                 this.controllers = [];
                 this.listeners = [];
                 this.queue = [];
                 this.connection = undefined;
                 this.isConnected = false;
-                this.open = function (url, params) {
-                    this.connection = new window.WebSocket(url + query(angular.extend({}, parameters, params)));
+                this.autoReconnect = false;
+            this.url = "";
+            this.open = function (url, params, reconnect) {
+
+               
+
+                if (!reconnect) {
+
+                    this.url = url + query(angular.extend({}, parameters, params));
+                } else {
+                    this.reconnects++;
+                    this.url = url;
+                }
+                    
+                  
+                   
+                   
+                    this.connection = new window.WebSocket(this.url);
                     this.connection.binaryType = "arraybuffer";
                     this.connection.onopen = function () {
                         self.queue.forEach(function (queuedMessage) {
@@ -53,14 +72,28 @@ if ("angular" in window) {
                         });
                         self.queue.length = 0;
                     };
+                    this.connection.onclose = function() {
+                        self.open(self.url);
+                       
+                    };
                     this.connection.onmessage = function (msg) {
                         var obj = JSON.parse(msg.data);
                         var listeners = self.listeners.filter(function (pre) {
-                            return pre.controller == obj.C && pre.topic === obj.T;
+                            return pre.controller === obj.C && pre.topic === obj.T;
                         });
                         listeners.forEach(function (lst) {
                             lst.fn.fire(JSON.parse(obj.D), obj.C);
                         });
+                        // is there a promise
+                       
+                        if (provider.promises.hasOwnProperty(obj.T)) {
+                            var data = JSON.parse(obj.D);
+                          
+                            provider.promises[obj.T].resolve({
+                                key: data.K, value: data.V
+                            });
+                        }
+                       
                     };
                 };
                 this.send = function (data) {
@@ -288,6 +321,10 @@ if ("angular" in window) {
                                 publish: function (t, d) {
                                     send(new Message(t, d, controller));
                                 },
+                                kill: function() {
+                                    provider.connection.close();
+                                },
+                                reconnects: provider.reconnects,
                                 close: close,
                                 subscribe: function (t, fn) {
                                     registerListener(uuid, t, controller, fn);
@@ -303,17 +340,49 @@ if ("angular" in window) {
                                 },
                                 setEnum: setEnum,
                                 storage: {
-                                    set: function () {
-                                        throw "Not implemented";
+                                    set: function (key, value) {
+                                        key = key.toLowerCase();
+                                        var message = new Message(
+                                            eventType.storage.set,
+                                            {
+                                                K: key,
+                                                V: typeof (value) === "object" ? JSON.stringify(value) : value
+                                            }, controller
+                                        );
+                                        send(message);
+                                        return message;
                                     },
-                                    get: function () {
-                                        throw "Not implemented";
+                                    get: function (key) {
+                                        key = key.toLowerCase();
+                                        var deferred = $q.defer();
+                                        var p = eventType.storage.get + ":" + key;
+                                        provider.promises[p] = deferred;
+                                        var message = new Message(
+                                              eventType.storage.get,
+                                              {
+                                                  K: key
+                                              }, controller
+                                          );
+                                        send(message);
+                                        return deferred.promise;
                                     },
                                     clear: function () {
-                                        throw "Not implemented";
+                                        var message = new Message(
+                                                eventType.storage.clear,
+                                                {
+                                                }, controller
+                                            );
+                                        send(message);
                                     },
-                                    remove: function () {
-                                        throw "Not implemented";
+                                    remove: function (key) {
+                                        key = key.toLowerCase();
+                                        var message = new Message(
+                                              eventType.storage.remove,
+                                              {
+                                                  K: key
+                                              }, controller
+                                          );
+                                        send(message);
                                     }
                                 },
                                 setProperty: setProperty,

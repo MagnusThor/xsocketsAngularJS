@@ -1,10 +1,13 @@
-﻿angular.module("myApp").controller("donkyController", ["$scope", "foo", function ($scope, rtc) {
+﻿//
+// example controller 1 - monkyController
+//
+angular.module("myApp").controller("monkyController", ["$scope", "foo", function ($scope, rtc) {
     $scope.message = {
         text: ""
     };
     $scope.messages = [];
     rtc.onopen = function (ci) {
-        console.log("donkyController rtc open", ci)
+        console.log("donkyController rtc open", ci);
     };
 
     rtc.on("chatmessage", function (data) {
@@ -21,12 +24,10 @@
 }]).factory("foo", ["xsocketsController", function (xsocketsController) {
     return xsocketsController("generic");
 }]);
-
-
-
-
-
-angular.module("myApp").controller("monkyController", ["$scope", "myService", function ($scope, rtc) {
+//
+// example controller 2 - donkyController
+//
+angular.module("myApp").controller("donkyController", ["$scope", "myService", function ($scope, rtc) {
     $scope.message = {
         text: ""
     };
@@ -36,6 +37,32 @@ angular.module("myApp").controller("monkyController", ["$scope", "myService", fu
             rtc.sendMessage($scope.message.text);
             $scope.message.text = "";
         }
-       
     };
+}]);
+
+//
+// example controller 3 - zebraController
+//
+angular.module("myApp").controller("zebraController", ["$scope", "generic", function ($scope, generic) {
+    $scope.animal = {
+        name: ""
+    };
+    $scope.preserved = {};
+   
+    generic.storage.get("animalName").then(function (obj) {
+        // where obj is {key:string,value:any};
+        $scope.animal.name = obj.value;
+        $scope.preserved = obj;
+    });
+    $scope.save = function () {
+        // void
+        generic.storage.set("animalName", $scope.animal.name);
+    };
+    $scope.reconnects = generic.reconnects;
+    $scope.close = function() {
+        generic.kill();
+    };
+
+}]).factory("generic", ["xsocketsController", function (xsocketsController) {
+    return xsocketsController("generic");
 }]);
