@@ -45,35 +45,47 @@ if ("angular" in window) {
                     this.isConnected = true;
                 };
                 this.ondisconnected = function() {
-                    self.open(self.url);
+                    self.reconnect();
                 };
-                this.reconnects = 0;
+                this.connectionAttempts = 0;
                 this.controllers = [];
                 this.listeners = [];
                 this.queue = [];
                 this.connection = undefined;
                 this.isConnected = false;
-                this.autoReconnect = false;
+                this.isReconnecting = false;
+
+
+                this.reconnect = function () {
+                    this.connectionAttempts++;
+                    if (this.isReconnecting) return;
+
+                    this.isReconnecting = true;
+                    this.open();
+                }
+
             this.url = "";
             this.open = function (url, params, reconnect) {
+               
+               
                 if (arguments.length > 0) {
                     if (!reconnect) {
                         this.url = url + query(angular.extend({}, parameters, params));
                     } else {
-                        this.reconnects++;
+                       
                         this.url = url;
                     }
-
                 };
-
                 this.connection = new window.WebSocket(this.url);
                     this.connection.binaryType = "arraybuffer";
                     this.connection.onclose = function (evt) {
-
+                        self.isReconnecting = false;
                         self.isConnected = false;
                         if (self.ondisconnected) self.ondisconnected.apply(evt);
                     };
-                        this.connection.onopen = function (evt) {
+                    this.connection.onopen = function (evt) {
+                        self.connectionAttempts = 0;
+                        self.isReconnecting = false;
                         self.queue.forEach(function (queuedMessage) {
                             self.send(queuedMessage);
                         });
@@ -331,7 +343,7 @@ if ("angular" in window) {
                                 kill: function() {
                                     provider.connection.close();
                                 },
-                                reconnects: provider.reconnects,
+                                connectionAttempts: provider.connectionAttempts,
                                 close: close,
                                 subscribe: function (t, fn) {
                                     registerListener(uuid, t, controller, fn);
@@ -409,7 +421,7 @@ if ("angular" in window) {
                                     instance.onopen(ci);
                             });
                             registerListener(uuid, eventType.controller.onClose, controller, function (event) {
-                                removeListeners(uuid, event.C);
+                             
                                 if (instance.onclose)
                                     instance.onclose();
                             });

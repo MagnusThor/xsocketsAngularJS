@@ -38,6 +38,7 @@ angular.module("myApp").controller("donkyController", ["$scope", "myService", fu
             $scope.message.text = "";
         }
     };
+   
     $scope.close = function () {
         rtc.closeConnection();
     };

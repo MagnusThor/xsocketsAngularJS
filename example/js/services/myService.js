@@ -2,7 +2,7 @@
 angular.module("myApp").service('myService', ["xsocketsController", function (xsocketsController) {
 
   
-    var bar = xsocketsController("generic");
+    var bar = xsocketsController("test");
 
     bar.onopen = function() {
         console.log("onopen %s",new Date());
@@ -15,6 +15,12 @@ angular.module("myApp").service('myService', ["xsocketsController", function (xs
     bar.on("chatmessage", function (data) {
         self.messages.unshift(data);
     });
+
+    bar.onclose = function () {
+        console.log("controller closed");
+    }
+
+
     this.sendMessage = function (message) {
         bar.invoke("chatmessage", {
             text: message, dt: new Date()

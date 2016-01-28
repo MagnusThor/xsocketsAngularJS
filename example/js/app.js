@@ -1,8 +1,8 @@
 ﻿angular.module("myApp", ["xsockets", "ngRoute"])
     .config([
-        "xsocketsControllerProvider", "$routeProvider","$provide", function (xsocketsControllerProvider, $routeProvider,$provide) {
+        "xsocketsControllerProvider", "$routeProvider", "$provide", function (xsocketsControllerProvider, $routeProvider, $provide) {
 
-            xsocketsControllerProvider.open("wss://webrtoxfordai.azurewebsites.net:443/");
+            xsocketsControllerProvider.open("ws://localhost:49828/");
 
             xsocketsControllerProvider.onconnected = function(evt) {
                 console.log("onconnected %s" , new Date());
@@ -10,7 +10,12 @@
 
             xsocketsControllerProvider.ondisconnected = function (evt) {
                 console.log("ondisconnected %s", new Date());
-                xsocketsControllerProvider.open();
+                if (xsocketsControllerProvider.connectionAttempts < 5) { // just try 5 times to reconnect..
+                    window.setTimeout(function () {
+                        xsocketsControllerProvider.reconnect();
+                        console.log("tryinig to connect %s", xsocketsControllerProvider.connectionAttempts);
+                }, 2000);
+                }
             };
 
             $routeProvider.when("/monky", {
@@ -30,7 +35,7 @@
             });
             // provide the generic controller as bar "serviceId" 
             $provide.factory("bar", ["xsocketsController", function (xsocketsController) {
-                var bar = xsocketsController("generic");
+                var bar = xsocketsController("TestController");
             
                 return bar;
             }]);
