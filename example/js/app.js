@@ -1,7 +1,18 @@
 ﻿angular.module("myApp", ["xsockets", "ngRoute"])
     .config([
         "xsocketsControllerProvider", "$routeProvider","$provide", function (xsocketsControllerProvider, $routeProvider,$provide) {
-            xsocketsControllerProvider.open("wss://localhost:44300/");
+
+            xsocketsControllerProvider.open("wss://webrtoxfordai.azurewebsites.net:443/");
+
+            xsocketsControllerProvider.onconnected = function(evt) {
+                console.log("onconnected %s" , new Date());
+            };
+
+            xsocketsControllerProvider.ondisconnected = function (evt) {
+                console.log("ondisconnected %s", new Date());
+                xsocketsControllerProvider.open();
+            };
+
             $routeProvider.when("/monky", {
                 templateUrl: "view/monky.html",
                 controller: "monkyController"

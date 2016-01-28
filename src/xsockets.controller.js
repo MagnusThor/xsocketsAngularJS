@@ -2,10 +2,10 @@
 if (!Array.prototype.find) {
     Array.prototype.find = function (predicate) {
         if (this === null) {
-            throw new TypeError('Array.prototype.find called on null or undefined');
+            throw new TypeError("Array.prototype.find called on null or undefined");
         }
-        if (typeof predicate !== 'function') {
-            throw new TypeError('predicate must be a function');
+        if (typeof predicate !== "function") {
+            throw new TypeError("predicate must be a function");
         }
         var list = Object(this);
         var length = list.length >>> 0;
@@ -25,8 +25,8 @@ if ("angular" in window) {
     (function () {
         "use strict";
         angular.module("xsockets", []);
-        angular.module("xsockets").provider("xsocketsController", ['$injector',
-        function ($injector) {
+        angular.module("xsockets").provider("xsocketsController",[
+        function () {
           
                 var provider = this,
                     self = this;
@@ -41,6 +41,12 @@ if ("angular" in window) {
                     return str;
                 };
                 this.promises = {};
+                this.onconnected = function() {
+                    this.isConnected = true;
+                };
+                this.ondisconnected = function() {
+                    self.open(self.url);
+                };
                 this.reconnects = 0;
                 this.controllers = [];
                 this.listeners = [];
@@ -50,32 +56,32 @@ if ("angular" in window) {
                 this.autoReconnect = false;
             this.url = "";
             this.open = function (url, params, reconnect) {
+                if (arguments.length > 0) {
+                    if (!reconnect) {
+                        this.url = url + query(angular.extend({}, parameters, params));
+                    } else {
+                        this.reconnects++;
+                        this.url = url;
+                    }
 
-               
+                };
 
-                if (!reconnect) {
-
-                    this.url = url + query(angular.extend({}, parameters, params));
-                } else {
-                    this.reconnects++;
-                    this.url = url;
-                }
-                    
-                  
-                   
-                   
-                    this.connection = new window.WebSocket(this.url);
+                this.connection = new window.WebSocket(this.url);
                     this.connection.binaryType = "arraybuffer";
-                    this.connection.onopen = function () {
+                    this.connection.onclose = function (evt) {
+
+                        self.isConnected = false;
+                        if (self.ondisconnected) self.ondisconnected.apply(evt);
+                    };
+                        this.connection.onopen = function (evt) {
                         self.queue.forEach(function (queuedMessage) {
                             self.send(queuedMessage);
                         });
                         self.queue.length = 0;
+                        if (self.onconnected) self.onconnected.apply(evt);
                     };
-                    this.connection.onclose = function() {
-                        self.open(self.url);
-                       
-                    };
+                 
+                  
                     this.connection.onmessage = function (msg) {
                         var obj = JSON.parse(msg.data);
                         var listeners = self.listeners.filter(function (pre) {
@@ -94,8 +100,9 @@ if ("angular" in window) {
                             });
                         }
                        
+                   
                     };
-                };
+            };
                 this.send = function (data) {
                     if (this.connection.readyState === 1) {
                         this.connection.send(data.toString());
@@ -124,7 +131,7 @@ if ("angular" in window) {
                     return true;
                 };
                 this.uuid = function (a, b) {
-                    for (b = a = ''; a++ < 36; b += a * 51 & 52 ? (a ^ 15 ? 8 ^ Math.random() * (a ^ 20 ? 16 : 4) : 4).toString(16) : '-');
+                    for (b = a = ""; a++ < 36; b += a * 51 & 52 ? (a ^ 15 ? 8 ^ Math.random() * (a ^ 20 ? 16 : 4) : 4).toString(16) : "-");
                     return b;
                 };
                 this.listener = function (instance, topic, controller, fn) {
@@ -134,7 +141,7 @@ if ("angular" in window) {
                     this.fn = fn;
                 };
                 this.$get = [
-                    '$q', '$rootScope',
+                    "$q", "$rootScope",
                     function ($q, $rootScope) {
                         return function factory(controller, propertyList, $scope) {
                             var dispatcher = (function (rs) {
@@ -415,12 +422,12 @@ if ("angular" in window) {
                                     setProperty(prop.name, prop.value);
                                 });
                             } else if (arguments.length === 2) {
-                                arguments[1].$on('$destroy', function () {
+                                arguments[1].$on("$destroy", function () {
                                     instance.close();
                                 });
                             }
                             if (arguments.length === 3) {
-                                arguments[2].$on('$destroy', function () {
+                                arguments[2].$on("$destroy", function () {
                                     instance.close();
                                 });
                             }

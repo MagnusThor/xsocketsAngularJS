@@ -1,5 +1,12 @@
 ﻿// 'bar' is provided using the "config" of myApp
-angular.module("myApp").service('myService', ["bar", function (bar) {
+angular.module("myApp").service('myService', ["xsocketsController", function (xsocketsController) {
+
+  
+    var bar = xsocketsController("generic");
+
+    bar.onopen = function() {
+        console.log("onopen %s",new Date());
+    };
 
     var self = this;
 
@@ -13,5 +20,11 @@ angular.module("myApp").service('myService', ["bar", function (bar) {
             text: message, dt: new Date()
         });
     };
-
+    this.closeConnection = function () {
+        bar.kill();
+        console.log("closeConnection %s", new Date());
+        bar.invoke("chatmessage", {
+            text: "Publish after kill?", dt: new Date()
+        });
+    };
 }]);

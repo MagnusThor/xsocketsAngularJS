@@ -38,6 +38,9 @@ angular.module("myApp").controller("donkyController", ["$scope", "myService", fu
             $scope.message.text = "";
         }
     };
+    $scope.close = function () {
+        rtc.closeConnection();
+    };
 }]);
 
 //
@@ -45,7 +48,7 @@ angular.module("myApp").controller("donkyController", ["$scope", "myService", fu
 //
 angular.module("myApp").controller("zebraController", ["$scope", "generic", function ($scope, generic) {
     $scope.animal = {
-        name: ""
+        key: ""
     };
     $scope.preserved = {};
    
@@ -56,13 +59,14 @@ angular.module("myApp").controller("zebraController", ["$scope", "generic", func
     });
     $scope.save = function () {
         // void
-        generic.storage.set("animalName", $scope.animal.name);
+        var m = generic.storage.set("animalName", $scope.animal.name);
+
+        
+
     };
-    $scope.reconnects = generic.reconnects;
     $scope.close = function() {
         generic.kill();
     };
-
 }]).factory("generic", ["xsocketsController", function (xsocketsController) {
     return xsocketsController("generic");
 }]);
