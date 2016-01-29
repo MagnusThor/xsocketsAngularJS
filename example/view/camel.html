@@ -1,0 +1,25 @@
+﻿<h1>Camel</h1>
+<p>
+    A simple file share, the selected file is distributed to all connected clients.
+</p>
+<label>Select a file</label>
+<input type="file" data-bind-file="" data-ng-model="theFile"/>
+
+
+<div ng-show="theFile">
+    {{theFile.name}}<br/>
+    {{theFile.size}} byte(s)<br/>
+    {{theFile.type}}<br/>
+    <button ng-click="shareFile()">Share file</button>
+
+</div>
+
+<h2>Files recieved</h2>
+<hr/>
+
+
+    <ul >
+        <li ng-repeat="file in files">
+            <a href="{{file.fileUrl}}" download="{{file.fileName}}">{{file.fileName}} <mark>{{file.fileSize}}</mark></a>
+        </li>
+    </ul>

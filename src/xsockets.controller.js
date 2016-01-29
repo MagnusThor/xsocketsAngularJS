@@ -21,15 +21,16 @@ if (!Array.prototype.find) {
         return undefined;
     };
 }
+
 if ("angular" in window) {
     (function () {
         "use strict";
         angular.module("xsockets", []);
         angular.module("xsockets").provider("xsocketsController",[
         function () {
-          
-                var provider = this,
-                    self = this;
+           
+
+                var provider = this;
                 var parameters = JSON.parse(localStorage.getItem("ci") ? localStorage.getItem("ci") : "{}");
                 var query = function (obj) {
                     var str = "?";
@@ -40,12 +41,55 @@ if ("angular" in window) {
                     str = str.slice(0, str.length - 1);
                     return str;
                 };
+
+                var dispatch = function (obj, arrayBuffer) {
+                    
+                var listeners = provider.listeners.filter(function (pre) {
+                  
+                    return pre.controller === obj.C && pre.topic === obj.T;
+                });
+                listeners.forEach(function(lst) {
+                    lst.fn.fire(JSON.parse(obj.D),arrayBuffer, obj.C);
+
+                });
+                if (provider.promises.hasOwnProperty(obj.T)) {
+                    var data = JSON.parse(obj.D);
+                    provider.promises[obj.T].resolve({
+                        key: data.K,
+                        value: data.V
+                    });
+                }
+            };
+
+                var parseBinaryMessage = function (arrayBuffer,fn) {
+
+                  
+
+                    var data = arrayBuffer; // .buffer
+                    var ab2Str = function (buf) {
+                        return String.fromCharCode.apply(null, new Uint16Array(buf));
+                    };
+                    var byteArrayToLong = function (byteArray) {
+                        var value = 0;
+                        for (var i = byteArray.byteLength - 1; i >= 0; i--) {
+                            value = (value * 256) + byteArray[i];
+                        }
+                        return parseInt(value);
+                    };
+                    var header = new Uint8Array(data, 0, 8);
+                    var payloadLength = byteArrayToLong(header);
+                    var offset = parseInt(8 + byteArrayToLong(header));
+
+                    fn(ab2Str(new Uint8Array(data, 8, payloadLength)), new Uint8Array(data, parseInt(offset), data.byteLength - offset), header);
+
+                  
+                };
                 this.promises = {};
                 this.onconnected = function() {
                     this.isConnected = true;
                 };
                 this.ondisconnected = function() {
-                    self.reconnect();
+                    provider.reconnect();
                 };
                 this.connectionAttempts = 0;
                 this.controllers = [];
@@ -54,21 +98,17 @@ if ("angular" in window) {
                 this.connection = undefined;
                 this.isConnected = false;
                 this.isReconnecting = false;
+            this.reconnect = function() {
+                this.connectionAttempts++;
+                if (this.isReconnecting) return;
 
-
-                this.reconnect = function () {
-                    this.connectionAttempts++;
-                    if (this.isReconnecting) return;
-
-                    this.isReconnecting = true;
-                    this.open();
-                }
+                this.isReconnecting = true;
+                this.open();
+            };
 
             this.url = "";
             this.open = function (url, params, reconnect) {
-               
-               
-                if (arguments.length > 0) {
+                 if (arguments.length > 0) {
                     if (!reconnect) {
                         this.url = url + query(angular.extend({}, parameters, params));
                     } else {
@@ -79,43 +119,36 @@ if ("angular" in window) {
                 this.connection = new window.WebSocket(this.url);
                     this.connection.binaryType = "arraybuffer";
                     this.connection.onclose = function (evt) {
-                        self.isReconnecting = false;
-                        self.isConnected = false;
-                        if (self.ondisconnected) self.ondisconnected.apply(evt);
+                        provider.isReconnecting = false;
+                        provider.isConnected = false;
+                        if (provider.ondisconnected) provider.ondisconnected.apply(evt);
                     };
                     this.connection.onopen = function (evt) {
-                        self.connectionAttempts = 0;
-                        self.isReconnecting = false;
-                        self.queue.forEach(function (queuedMessage) {
-                            self.send(queuedMessage);
+                        provider.connectionAttempts = 0;
+                        provider.isReconnecting = false;
+                        provider.queue.forEach(function (queuedMessage) {
+                            provider.send(queuedMessage);
                         });
-                        self.queue.length = 0;
-                        if (self.onconnected) self.onconnected.apply(evt);
+                        provider.queue.length = 0;
+                        if (provider.onconnected) provider.onconnected.apply(evt);
                     };
-                 
-                  
                     this.connection.onmessage = function (msg) {
-                        var obj = JSON.parse(msg.data);
-                        var listeners = self.listeners.filter(function (pre) {
-                            return pre.controller === obj.C && pre.topic === obj.T;
+                    if (msg.data instanceof ArrayBuffer)  {
+                        parseBinaryMessage(msg.data, function (message, arrayBuffer, header) {
+                            var obj = JSON.parse(message);
+                            dispatch(obj, new Uint8Array(arrayBuffer), header);
                         });
-                        listeners.forEach(function (lst) {
-                            lst.fn.fire(JSON.parse(obj.D), obj.C);
-                        });
-                        // is there a promise
-                       
-                        if (provider.promises.hasOwnProperty(obj.T)) {
-                            var data = JSON.parse(obj.D);
-                          
-                            provider.promises[obj.T].resolve({
-                                key: data.K, value: data.V
-                            });
-                        }
-                       
-                   
-                    };
+                    } else
+                        dispatch(JSON.parse(msg.data));
+                };
+
             };
-                this.send = function (data) {
+
+            this.sendBinary = function(arrayBuffer) {
+                this.connection.send(arrayBuffer);
+            };
+            this.send = function (data) {
+
                     if (this.connection.readyState === 1) {
                         this.connection.send(data.toString());
                     } else {
@@ -134,7 +167,7 @@ if ("angular" in window) {
                     if (!this.controllers.find(function (pre) {
                             return pre.controller === ctrl;
                     })) {
-                        self.controllers.push({
+                        provider.controllers.push({
                             controller: ctrl,
                             readyState: 0
                         });
@@ -155,16 +188,7 @@ if ("angular" in window) {
                 this.$get = [
                     "$q", "$rootScope",
                     function ($q, $rootScope) {
-                        return function factory(controller, propertyList, $scope) {
-                            var dispatcher = (function (rs) {
-                                var ctor = function (fn) {
-                                    this.fn = fn;
-                                };
-                                ctor.prototype.fire = function (d, c) {
-                                    rs.$apply(this.fn.apply(this, [d, c]));
-                                };
-                                return ctor;
-                            })($rootScope);
+                        return function factory(controller, propertyList) {
                             var eventType = {
                                 init: "1",
                                 ping: "7",
@@ -185,6 +209,15 @@ if ("angular" in window) {
                                     unsubscribe: "6"
                                 }
                             };
+                            var dispatcher = (function (rs) {
+                                var ctor = function (fn) {
+                                    this.fn = fn;
+                                };
+                                ctor.prototype.fire = function (data,arrayBuffer) {
+                                    rs.$apply(this.fn.apply(this, [data,arrayBuffer]));
+                                };
+                                return ctor;
+                            })($rootScope);
                             var uuid = provider.uuid();
                             var findListener = function (i, t, c) {
                                 var match = provider.listeners.filter(function (pre) {
@@ -264,25 +297,22 @@ if ("angular" in window) {
                                 };
                                 return ctor;
                             })();
-                            var parseBinaryMessage = function (arrayBuffer, cb) {
-                                var data = arrayBuffer; // .buffer
-                                var ab2Str = function (buf) {
-                                    return String.fromCharCode.apply(null, new Uint16Array(buf));
-                                };
-                                var byteArrayToLong = function (byteArray) {
-                                    var value = 0;
-                                    for (var i = byteArray.byteLength - 1; i >= 0; i--) {
-                                        value = (value * 256) + byteArray[i];
-                                    }
-                                    return parseInt(value);
-                                };
-                                var header = new Uint8Array(data, 0, 8);
-                                var payloadLength = byteArrayToLong(header);
-                                var offset = parseInt(8 + byteArrayToLong(header));
-                                cb(ab2Str(new Uint8Array(data, 8, payloadLength)), new Uint8Array(data, parseInt(offset), data.byteLength - offset), header);
-                                return this;
+                            
+
+                            var getArrayBuffer = function(file) {
+                                var deferred = $q.defer();
+                                var reader = new FileReader();
+                                reader.onload = (function () {
+                                    return function (e) {
+                                        deferred.resolve(e.target.result);
+                                    };
+                                })(file);
+                                reader.readAsArrayBuffer(file);
+                                return deferred.promise;
                             };
+
                             var send = function (data) {
+                              
                                 provider.send(data);
                             };
                             var setProperty = function (name, value) {
@@ -305,53 +335,56 @@ if ("angular" in window) {
                                 send(new Message(property, value, controller));
                             };
                             var init = function (ctrl) {
-                                // controller mat be initialized ?
                                 if (!provider.controllerIsOpen(ctrl)) {
                                     send(new Message(eventType.init, {
                                         init: true
                                     }, ctrl));
-                                } else { }
+                                }
                             };
                             var close = function () {
                                 send(new Message(eventType.controller.onClose, {}, controller));
                             };
                             // provider API
-                            var instance = {
+                            var controllerInstance = {
                                 controllerName: controller,
                                 uuid: uuid,
                                 onerror: null,
                                 onopen: null,
                                 onclose: null,
-                                on: function (t, fn) {
+                                on: function(t, fn) {
                                     registerListener(uuid, t, controller, fn);
                                 },
-                                off: function (t) {
+                                off: function(t) {
                                     unregisterListener(uuid, t, controller);
                                 },
-                                invokeBinary: function (arrayBuffer) {
-                                    send(arrayBuffer);
+                                invokeBinary: function(arrayBuffer) {
+                                    provider.sendBinary(arrayBuffer);
                                 },
-                                createBinaryMessage: function (a, t, d) {
-                                    return new BinaryMessage(a, t, d);
+                                createBlob: function (arrayBuffer, options) {
+                                    return new Blob([arrayBuffer], options);
                                 },
-                                invoke: function (t, d) {
+                                createBinaryMessage: function(a, t, d) {
+                                    return (new BinaryMessage(a, t, d)).buffer;
+                                },
+                                invoke: function(t, d) {
                                     send(new Message(t, d, controller));
                                 },
-                                publish: function (t, d) {
+                                publish: function(t, d) {
                                     send(new Message(t, d, controller));
                                 },
                                 kill: function() {
                                     provider.connection.close();
                                 },
+                                getArrayBuffer : getArrayBuffer,
                                 connectionAttempts: provider.connectionAttempts,
                                 close: close,
-                                subscribe: function (t, fn) {
+                                subscribe: function(t, fn) {
                                     registerListener(uuid, t, controller, fn);
                                     send(new Message(eventType.pubSub.subscribe, {
                                         T: t
                                     }, controller));
                                 },
-                                unsubscribe: function (t) {
+                                unsubscribe: function(t) {
                                     unregisterListener(uuid, t, controller);
                                     send(new Message(eventType.pubSub.unsubscribe, {
                                         T: t
@@ -359,7 +392,7 @@ if ("angular" in window) {
                                 },
                                 setEnum: setEnum,
                                 storage: {
-                                    set: function (key, value) {
+                                    set: function(key, value) {
                                         key = key.toLowerCase();
                                         var message = new Message(
                                             eventType.storage.set,
@@ -371,63 +404,68 @@ if ("angular" in window) {
                                         send(message);
                                         return message;
                                     },
-                                    get: function (key) {
+                                    get: function(key) {
                                         key = key.toLowerCase();
                                         var deferred = $q.defer();
                                         var p = eventType.storage.get + ":" + key;
                                         provider.promises[p] = deferred;
                                         var message = new Message(
-                                              eventType.storage.get,
-                                              {
-                                                  K: key
-                                              }, controller
-                                          );
+                                            eventType.storage.get,
+                                            {
+                                                K: key
+                                            }, controller
+                                        );
                                         send(message);
                                         return deferred.promise;
                                     },
-                                    clear: function () {
+                                    clear: function() {
                                         var message = new Message(
-                                                eventType.storage.clear,
-                                                {
-                                                }, controller
-                                            );
+                                            eventType.storage.clear,
+                                            {
+                                                
+                                            }, controller
+                                        );
                                         send(message);
                                     },
-                                    remove: function (key) {
+                                    remove: function(key) {
                                         key = key.toLowerCase();
                                         var message = new Message(
-                                              eventType.storage.remove,
-                                              {
-                                                  K: key
-                                              }, controller
-                                          );
+                                            eventType.storage.remove,
+                                            {
+                                                K: key
+                                            }, controller
+                                        );
                                         send(message);
                                     }
                                 },
                                 setProperty: setProperty,
-                                getListeners: function () {
-                                    return provider.listeners.filter(function (p) {
+                                getListeners: function() {
+                                    return provider.listeners.filter(function(p) {
                                         return p.controller === controller && p.instance === uuid;
                                     });
-                                }
-                            };
+                                },
+                                removeListeners: removeListeners
+                        };
                             registerListener(uuid, eventType.controller.onOpen, controller, function (event) {
                                 var ci = {
                                     persistentId: event.PI,
                                     connectionId: event.CI
                                 };
                                 localStorage.setItem("ci", JSON.stringify(ci));
-                                if (instance.onopen)
-                                    instance.onopen(ci);
+                                if (controllerInstance.onopen)
+                                    controllerInstance.onopen(ci);
                             });
+
+
+                         
                             registerListener(uuid, eventType.controller.onClose, controller, function (event) {
                              
-                                if (instance.onclose)
-                                    instance.onclose();
+                                if (controllerInstance.onclose)
+                                    controllerInstance.onclose();
                             });
                             registerListener(uuid, eventType.controller.onError, controller, function (err) {
                                 if (instance.onerror)
-                                    instance.onerror(err, controller);
+                                    controllerInstance.onerror(err, controller);
                             });
                             if (arguments[1] instanceof Array) {
                                 propertyList.forEach(function (prop) {
@@ -435,17 +473,17 @@ if ("angular" in window) {
                                 });
                             } else if (arguments.length === 2) {
                                 arguments[1].$on("$destroy", function () {
-                                    instance.close();
+                                    controllerInstance.close();
                                 });
                             }
                             if (arguments.length === 3) {
                                 arguments[2].$on("$destroy", function () {
-                                    instance.close();
+                                    controllerInstance.close();
                                 });
                             }
                             // initialize the controller
                             init(controller);
-                            return instance;
+                            return controllerInstance;
                         };
                     }
                 ];
