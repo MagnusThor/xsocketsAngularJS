@@ -2,7 +2,7 @@
     .config([
         "xsocketsControllerProvider", "$routeProvider", "$provide", function (xsocketsControllerProvider, $routeProvider, $provide) {
 
-            xsocketsControllerProvider.open("ws://localhost:49828/");
+            xsocketsControllerProvider.open("wss://webrtoxfordai.azurewebsites.net:443/");
 
             xsocketsControllerProvider.onconnected = function(evt) {
                 console.log("onconnected %s" , new Date());
