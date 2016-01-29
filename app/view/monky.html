@@ -1,7 +1,12 @@
-﻿<h1>Monky</h1>
+﻿<h1>Example 1</h1>
+<p>
+    the controllerInstance is injected to the ng-Controller
+</p>
+
 <div class="chatform">
-    <input placeholder="enter something and hit return..." type="text" ng-model="message.text" ng-keyup="sendMessage($event.keyCode)" />
+    <input placeholder="enter something and hit return..." type="text" ng-model="message.text" ng-keyup="sendMessage($event.keyCode)"/>
 </div>
+
 <div class="chatmessages" ng>
     <p ng-repeat="message in messages">
         <span>{{message.dt |date:'HH:mm:ss'}}</span>
