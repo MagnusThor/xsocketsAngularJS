@@ -54,18 +54,14 @@ angular.module("myApp").controller("zebraController", ["$scope", "generic", func
         key: ""
     };
     $scope.preserved = {};
-   
+
     generic.storage.get("animalName").then(function (obj) {
         // where obj is {key:string,value:any};
         $scope.animal.name = obj.value;
         $scope.preserved = obj;
     });
     $scope.save = function () {
-        // void
-        var m = generic.storage.set("animalName", $scope.animal.name);
-
-        
-
+         generic.storage.set("animalName", $scope.animal.name);
     };
     $scope.close = function() {
         generic.kill();
