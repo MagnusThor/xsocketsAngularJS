@@ -214,7 +214,8 @@ if ("angular" in window) {
                                     this.fn = fn;
                                 };
                                 ctor.prototype.fire = function (data,arrayBuffer) {
-                                    rs.$apply(this.fn.apply(this, [data,arrayBuffer]));
+                                    rs.$digest(this.fn.apply(this, [data,arrayBuffer]));
+                                    //this.fn.apply(this, [data, arrayBuffer])
                                 };
                                 return ctor;
                             })($rootScope);

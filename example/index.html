@@ -25,27 +25,43 @@
             color: #666;
             margin-right: 10px;
         }
+        nav a {
+            margin-right: 20px;
+        }
+       
     </style>
 </head>
-<body ng-app="myApp" >
-<a href="#monky">Monky</a>&nbsp;<a href="#donky">Donky</a>
-    &nbsp;<a href="#zebra">Zebra</a>&nbsp;<a href="#camel">Camel ( BinaryMessages )</a>
-    <hr />
-   
-    <div ng-view>
-        
-    </div>
+<body ng-app="myApp">
+<nav>
+    <a href="#monky">Monkey</a><a href="#donky">Donkey</a>
+    <a href="#zebra">Zebra</a><a href="#camel">Camel ( BinaryMessages )</a>
+    <a href="#tiger">Tiger ( performance test )</a>
+</nav>
 
-  
+<hr/>
+
+<div ng-view>
+
+</div>
 
 
 
 
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular-route.min.js"></script>
-    <script src="../src/xsockets.controller.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/services/myService.js"></script>
-    <script src="js/controllers/exampleControllers.js"></script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular-route.min.js"></script>
+<script src="/src/xsockets.controller.js"></script>
+<script src="js/app.js"></script>
+<script src="js/services/chatService.js"></script>
+<script src="js/services/searchService.js"></script>
+
+<script src="js/controllers/camelController.js"></script>
+<script src="js/controllers/donkyController.js"></script>
+<script src="js/controllers/monkyController.js"></script>
+<script src="js/controllers/tigerController.js"></script>
+<script src="js/controllers/zebraController.js"></script>
+<script src="js/controllers/tigerController.js"></script>
+
 </body>
 </html>

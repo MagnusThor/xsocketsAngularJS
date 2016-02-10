@@ -1,8 +1,8 @@
 ﻿// 'bar' is provided using the "config" of myApp
-angular.module("myApp").service('myService', ["xsocketsController", function (xsocketsController) {
+angular.module("myApp").service('chatService', ["xsocketsController", function (xsocketsController) {
 
   
-    var bar = xsocketsController("test");
+    var bar = xsocketsController("fakeorder");
 
     bar.onopen = function() {
         console.log("onopen %s",new Date());
@@ -11,6 +11,8 @@ angular.module("myApp").service('myService', ["xsocketsController", function (xs
     var self = this;
 
     this.messages = [];
+
+   
 
     bar.on("chatmessage", function (data) {
         self.messages.unshift(data);
