@@ -116,7 +116,7 @@ if ("angular" in window) {
                         this.url = url;
                     }
                 };
-                this.connection = new window.WebSocket(this.url);
+                 this.connection = new window.WebSocket(this.url, "XSocketsNET");
                     this.connection.binaryType = "arraybuffer";
                     this.connection.onclose = function (evt) {
                         provider.isReconnecting = false;

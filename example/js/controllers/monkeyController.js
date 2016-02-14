@@ -1,10 +1,10 @@
-﻿angular.module("myApp").controller("monkyController", ["$scope", "foo", function ($scope, rtc) {
+﻿angular.module("myApp").controller("monkeyController", ["$scope", "foo", function ($scope, rtc) {
     $scope.message = {
         text: ""
     };
     $scope.messages = [];
     rtc.onopen = function (ci) {
-        // console.log("donkyController rtc open", ci);
+        // console.log("donkeyController rtc open", ci);
     };
 
     rtc.on("chatmessage", function (data) {

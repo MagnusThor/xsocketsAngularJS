@@ -16,12 +16,12 @@
                 }
             };
 
-            $routeProvider.when("/monky", {
-                templateUrl: "view/monky.html",
-                controller: "monkyController"
-            }).when("/donky", {
-                templateUrl: "view/donky.html",
-                controller: "donkyController"
+            $routeProvider.when("/monkey", {
+                templateUrl: "view/monkey.html",
+                controller: "monkeyController"
+            }).when("/donkey", {
+                templateUrl: "view/donkey.html",
+                controller: "donkeyController"
             }).
             when("/zebra", {
                 templateUrl: "view/zebra.html",
@@ -38,7 +38,7 @@
                 })
 
                 .otherwise({
-                redirectTo: "/monky"
+                redirectTo: "/monkey"
             });
             // provide the generic controller as bar "serviceId" 
             $provide.factory("bar", ["xsocketsController", function (xsocketsController) {
@@ -57,7 +57,6 @@ angular.module("myApp").directive("symField", [function () {
         scope: {
             key : '=',
             model: '=',
-
         },
         link: function ($scope, el, attrs) {
             var self = $scope;

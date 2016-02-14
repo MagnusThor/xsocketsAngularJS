@@ -1,4 +1,5 @@
-﻿angular.module("myApp").controller("donkyController", ["$scope", "chatService", function ($scope, chatService) {
+﻿angular.module("myApp").controller("donkeyController", ["$scope", "chatService",
+    function ($scope, chatService) {
     $scope.message = {
         text: ""
     };

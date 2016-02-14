@@ -2,7 +2,7 @@
 angular.module("myApp").service('chatService', ["xsocketsController", function (xsocketsController) {
 
   
-    var bar = xsocketsController("fakeorder");
+    var bar = xsocketsController("test");
 
     bar.onopen = function() {
         console.log("onopen %s",new Date());

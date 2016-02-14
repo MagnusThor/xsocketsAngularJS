@@ -1,5 +1,6 @@
 ﻿
-angular.module("myApp").controller("camelController", ["$scope", "foo", function ($scope, rtc) {
+angular.module("myApp").controller("camelController",
+    ["$scope", "foo", function ($scope, rtc) {
     $scope.theFile = null;
     $scope.files = [];
     // add a listener for "shareFile", will fire when a binaryMessage is recieved.
