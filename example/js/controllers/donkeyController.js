@@ -12,7 +12,23 @@
         }
     };
 
-    $scope.close = function () {
+    chatService.onopen = function () {
+            chatService.messages.unshift({
+                text: "Controller is opened/repoened",
+                dt: new Date()
+        });
+        };
+        chatService.onclose = function () {
+
+        };
+
+
+
+
+    $scope.closeController= function () {
+        chatService.close();
+    };
+    $scope.closeConnection = function () {
         chatService.closeConnection();
     };
 }]);

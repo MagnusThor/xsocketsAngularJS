@@ -92,6 +92,7 @@ if ("angular" in window) {
                     provider.reconnect();
                 };
                 this.connectionAttempts = 0;
+                  this.maxConnectionAttempts = 5;
                 this.controllers = [];
                 this.listeners = [];
                 this.queue = [];
@@ -343,7 +344,8 @@ if ("angular" in window) {
                                 }
                             };
                             var close = function () {
-                                send(new Message(eventType.controller.onClose, {}, controller));
+                                send(new Message(eventType.controller.onClose,
+                                    {}, controller));
                             };
                             // provider API
                             var controllerInstance = {
