@@ -1,23 +1,27 @@
 ﻿angular.module("myApp", ["xsockets", "ngRoute"])
     .config([
         "xsocketsControllerProvider", "$routeProvider", "$provide", function (xsocketsControllerProvider, $routeProvider, $provide) {
-            xsocketsControllerProvider.open("wss://webrtoxfordai.azurewebsites.net:443");
+
+            // xsocketsControllerProvider.open("wss://webrtoxfordai.azurewebsites.net:443");
+
+            xsocketsControllerProvider.open("ws://localhost:49828/");
+
             xsocketsControllerProvider.onconnected = function (evt) {
                 console.log("onconnected %s", new Date());
             };
-
+            /* 
+            todo: Q: Should there be a autoReconnect configurable?  this approach is gives more control?
+            */
             xsocketsControllerProvider.ondisconnected = function (evt) {
                 console.log("ondisconnected %s", new Date());
                 if (xsocketsControllerProvider.connectionAttempts <=
                     xsocketsControllerProvider.maxConnectionAttempts
                     ) {
-
-
                     window.setTimeout(function () {
                         xsocketsControllerProvider.reconnect();
                         console.log("tryinig to connect %s",
                             xsocketsControllerProvider.connectionAttempts);
-                    }, 2000);
+                    }, 2000); // todo: interval should be configurable
                 }
             };
 
@@ -40,6 +44,12 @@
                     templateUrl: "view/tiger.html",
                     controller: "tigerController",
                     controllerAs: "tiger"
+                })
+
+                .when("/spider", {
+                    templateUrl: "view/spider.html",
+                    controller: "spiderController",
+                    controllerAs: "spider"
                 })
 
                 .otherwise({

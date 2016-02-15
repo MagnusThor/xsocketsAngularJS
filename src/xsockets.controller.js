@@ -28,8 +28,6 @@ if ("angular" in window) {
         angular.module("xsockets", []);
         angular.module("xsockets").provider("xsocketsController",[
         function () {
-           
-
                 var provider = this;
                 var parameters = JSON.parse(localStorage.getItem("ci") ? localStorage.getItem("ci") : "{}");
                 var query = function (obj) {
@@ -41,13 +39,16 @@ if ("angular" in window) {
                     str = str.slice(0, str.length - 1);
                     return str;
                 };
-
                 var dispatch = function (obj, arrayBuffer) {
-                    
-                var listeners = provider.listeners.filter(function (pre) {
-                  
-                    return pre.controller === obj.C && pre.topic === obj.T;
-                });
+                    var listeners = provider.listeners.filter(function (pre) {
+                        var topic = pre.topic;
+                        if (topic instanceof RegExp) {
+                            console.log("match", obj.T, topic);
+                            return pre.controller === obj.C && obj.T.match(topic);
+                        }
+                        return pre.controller === obj.C && topic === obj.T;
+
+                    });
                 listeners.forEach(function(lst) {
                     lst.fn.fire(JSON.parse(obj.D),arrayBuffer, obj.C);
 
@@ -62,9 +63,6 @@ if ("angular" in window) {
             };
 
                 var parseBinaryMessage = function (arrayBuffer,fn) {
-
-                  
-
                     var data = arrayBuffer; // .buffer
                     var ab2Str = function (buf) {
                         return String.fromCharCode.apply(null, new Uint16Array(buf));
@@ -134,13 +132,17 @@ if ("angular" in window) {
                         if (provider.onconnected) provider.onconnected.apply(evt);
                     };
                     this.connection.onmessage = function (msg) {
-                    if (msg.data instanceof ArrayBuffer)  {
-                        parseBinaryMessage(msg.data, function (message, arrayBuffer, header) {
+                     
+                    if (msg.data instanceof ArrayBuffer) {
+                        parseBinaryMessage(msg.data, function(message, arrayBuffer, header) {
                             var obj = JSON.parse(message);
                             dispatch(obj, new Uint8Array(arrayBuffer), header);
                         });
-                    } else
+                    } else {
+                      
                         dispatch(JSON.parse(msg.data));
+                    }
+                       
                 };
 
             };
@@ -221,9 +223,11 @@ if ("angular" in window) {
                                 return ctor;
                             })($rootScope);
                             var uuid = provider.uuid();
-                            var findListener = function (i, t, c) {
+                            var findListener = function (_instance, _topic, _controller) {
                                 var match = provider.listeners.filter(function (pre) {
-                                    return pre.topic === t && pre.controller === c && pre.instance === i;
+                                    var _listener = pre.topic === _topic && pre.controller === _controller
+                                        && pre.instance === _instance;
+                                    return _listener;
                                 });
                                 return match;
                             };
@@ -233,13 +237,18 @@ if ("angular" in window) {
                             };
                             var registerListener = function (i, t, c, fn) {
                                 var listener = new provider.listener(i, t, c, new dispatcher(fn));
+
                                 var match = findListener(uuid, t, controller);
+
                                 if (match.length === 0) {
+
                                     provider.listeners.push(listener);
+
                                 } else {
                                     var index = provider.listeners.indexOf(match[0]);
                                     provider.listeners[index] = listener;
                                 }
+
                             };
                             var removeListeners = function (instance, ctrl) {
                                 for (var i = 0; i < provider.listeners.length; i++) {

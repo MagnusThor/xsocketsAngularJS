@@ -16,6 +16,7 @@
             width: 50%;
             padding: 10px;
         }
+
         .chatmessages p {
             line-height: 1.4;
             color: #333;
@@ -25,10 +26,10 @@
             color: #666;
             margin-right: 10px;
         }
+
         nav a {
             margin-right: 20px;
         }
-       
     </style>
 </head>
 <body ng-app="myApp">
@@ -37,7 +38,8 @@
         <a href="#donkey">Donkey</a>
         <a href="#zebra">Zebra</a>
         <a href="#camel">Camel ( BinaryMessages )</a>
-        <a href="#tiger">Tiger ( performance test )</a>
+        <a href="#tiger">Tiger ( paertial/chunked results )</a>
+        <a href="#spider">Spider ( performance test )</a>
     </nav>
 
     <hr />
@@ -51,17 +53,21 @@
 
 
 
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular-route.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0/angular.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0/angular-route.min.js"></script>
     <script src="/src/xsockets.controller.js"></script>
     <script src="js/app.js"></script>
-  
+    <script src="js/services/spiderService.js"></script>
+
+    <script src="js/controllers/sipderController.js"></script>
 
     <script src="js/controllers/camelController.js"></script>
     <script src="js/controllers/donkeyController.js"></script>
     <script src="js/controllers/monkeyController.js"></script>
     <script src="js/controllers/tigerController.js"></script>
-<script src="js/controllers/zebraController.js"></script>
+    <script src="js/controllers/zebraController.js"></script>
+
+    <script src="js/services/spiderService.js"></script>
 
     <script src="js/services/chatService.js"></script>
     <script src="js/services/searchService.js"></script>
