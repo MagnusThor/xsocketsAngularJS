@@ -43,7 +43,6 @@ if ("angular" in window) {
                     var listeners = provider.listeners.filter(function (pre) {
                         var topic = pre.topic;
                         if (topic instanceof RegExp) {
-                            console.log("match", obj.T, topic);
                             return pre.controller === obj.C && obj.T.match(topic);
                         }
                         return pre.controller === obj.C && topic === obj.T;

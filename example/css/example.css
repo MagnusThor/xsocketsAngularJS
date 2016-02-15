@@ -1,0 +1,26 @@
+﻿.chatmessages {
+            border-top: 1px solid #333;
+            min-height: 300px;
+            max-height: 300px;
+            overflow: auto;
+            margin-top: 1em;
+        }
+
+        .chatform input {
+            width: 50%;
+            padding: 10px;
+        }
+
+        .chatmessages p {
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .chatmessages span {
+            color: #666;
+            margin-right: 10px;
+        }
+
+        nav a {
+            margin-right: 10px;
+        }

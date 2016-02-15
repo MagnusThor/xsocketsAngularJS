@@ -1,45 +1,19 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>xsocketsAngularJS - chat</title>
+    <title>xsocketsAngularJS - examples</title>
     <meta charset="utf-8" />
-    <style>
-        .chatmessages {
-            border-top: 1px solid #333;
-            min-height: 300px;
-            max-height: 300px;
-            overflow: auto;
-            margin-top: 1em;
-        }
 
-        .chatform input {
-            width: 50%;
-            padding: 10px;
-        }
-
-        .chatmessages p {
-            line-height: 1.4;
-            color: #333;
-        }
-
-        .chatmessages span {
-            color: #666;
-            margin-right: 10px;
-        }
-
-        nav a {
-            margin-right: 20px;
-        }
-    </style>
+    <link href="css/example.css" rel="stylesheet" />
 </head>
 <body ng-app="myApp">
     <nav>
-        <a href="#monkey">Monkey</a>
-        <a href="#donkey">Donkey</a>
-        <a href="#zebra">Zebra</a>
-        <a href="#camel">Camel ( BinaryMessages )</a>
-        <a href="#tiger">Tiger ( paertial/chunked results )</a>
-        <a href="#spider">Spider ( performance test )</a>
+        <a href="#monkey">Monkey(direct to controller)</a>
+        <a href="#donkey">Donkey(using a service / shared data)</a>
+        <a href="#zebra">Zebra(persistence)</a>
+        <a href="#camel">Camel(BinaryMessages)</a>
+        <a href="#spider">Spider(RegEx listeners)</a>
+        <a href="#lizard">Lizard ( Using a directive )</a>
     </nav>
 
     <hr />
@@ -48,27 +22,19 @@
 
     </div>
 
-
-
-
-
-
     <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0/angular.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0/angular-route.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0/angular-route.min.js"></script>
+
     <script src="/src/xsockets.controller.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/services/spiderService.js"></script>
-
     <script src="js/controllers/sipderController.js"></script>
-
+    <script src="js/controllers/lizardController.js"></script>
     <script src="js/controllers/camelController.js"></script>
     <script src="js/controllers/donkeyController.js"></script>
     <script src="js/controllers/monkeyController.js"></script>
-    <script src="js/controllers/tigerController.js"></script>
+    <script src="directives/realtimeDirective.js"></script>
     <script src="js/controllers/zebraController.js"></script>
-
     <script src="js/services/spiderService.js"></script>
-
     <script src="js/services/chatService.js"></script>
     <script src="js/services/searchService.js"></script>
 </body>

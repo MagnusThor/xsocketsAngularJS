@@ -2,9 +2,8 @@
     .config([
         "xsocketsControllerProvider", "$routeProvider", "$provide", function (xsocketsControllerProvider, $routeProvider, $provide) {
 
-            // xsocketsControllerProvider.open("wss://webrtoxfordai.azurewebsites.net:443");
-
-            xsocketsControllerProvider.open("ws://localhost:49828/");
+            
+            xsocketsControllerProvider.open("wss://webrtoxfordai.azurewebsites.net:443");
 
             xsocketsControllerProvider.onconnected = function (evt) {
                 console.log("onconnected %s", new Date());
@@ -39,18 +38,17 @@
                 templateUrl: "view/camel.html",
                 controller: "camelController"
             })
-
-                .when("/tiger", {
-                    templateUrl: "view/tiger.html",
-                    controller: "tigerController",
-                    controllerAs: "tiger"
-                })
-
                 .when("/spider", {
                     templateUrl: "view/spider.html",
                     controller: "spiderController",
                     controllerAs: "spider"
                 })
+
+                 .when("/lizard", {
+                     templateUrl: "view/lizard.html",
+                     controller: "lizardController",
+                     controllerAs: "lizard"
+                 })
 
                 .otherwise({
                     redirectTo: "/monkey"
@@ -62,6 +60,12 @@
             }]);
         }
     ]);
+
+
+
+
+
+
 
 angular.module("myApp").directive('bindFile', [function () {
     return {
