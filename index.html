@@ -1,55 +1,40 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>xsocketsAngularJS - chat</title>
+    <title>xsocketsAngularJS - examples</title>
     <meta charset="utf-8" />
-    <style>
-        nav a {
-            margin-right: 1em;
-        }
-         .chatmessages {
-             border-top: 1px solid #333;
-             min-height: 300px;
-             max-height: 300px;
-             overflow: auto;
-             margin-top: 1em;
-         }
 
-        .chatform input {
-            width: 50%;
-            padding: 10px;
-        }
-        .chatmessages p {
-            line-height: 1.4;
-            color: #333;
-        }
-
-        .chatmessages span {
-            color: #666;
-            margin-right: 10px;
-        }
-    </style>
+    <link href="app/css/example.css" rel="stylesheet" />
 </head>
 <body ng-app="myApp">
     <nav>
-        <a href="#monky">Example 1</a>&nbsp;<a href="#donky">Example 2</a>
-        &nbsp;<a href="#zebra">Example 3</a>&nbsp;<a href="#camel">Example 4 ( BinaryMessages )</a>
-        <hr />
+        <a href="#monkey">Monkey(direct to controller)</a>
+        <a href="#donkey">Donkey(using a service / shared data)</a>
+        <a href="#zebra">Zebra(persistence)</a>
+        <a href="#camel">Camel(BinaryMessages)</a>
+        <a href="#spider">Spider(RegEx listeners)</a>
+        <a href="#lizard">Lizard ( Using a directive )</a>
     </nav>
-<div ng-view>
 
-</div>
+    <hr />
 
+    <div ng-view>
 
+    </div>
 
-
-
-
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular-route.min.js"></script>
-<script src="//cdn.rawgit.com/MagnusThor/xsocketsAngularJS/master/src/xsockets.controller.js"></script>
-<script src="app/app.js"></script>
-<script src="app/services/myService.js"></script>
-<script src="app/controllers/exampleControllers.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0/angular.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0/angular-route.min.js"></script>
+    <script src="//cdn.rawgit.com/MagnusThor/xsocketsAngularJS/master/src/xsockets.controller.js"></script>
+    <script src="app/app.js"></script>
+    <script src="app/js/controllers/sipderController.js"></script>
+    <script src="app/js/controllers/lizardController.js"></script>
+    <script src="app/js/controllers/camelController.js"></script>
+    <script src="app/js/controllers/donkeyController.js"></script>
+    <script src="app/js/controllers/monkeyController.js"></script>
+    <script src="app/directives/realtimeDirective.js"></script>
+    <script src="app/js/controllers/zebraController.js"></script>
+    <script src="app/js/services/spiderService.js"></script>
+    <script src="app/js/services/chatService.js"></script>
+    <script src="app/js/services/searchService.js"></script>
 </body>
 </html>

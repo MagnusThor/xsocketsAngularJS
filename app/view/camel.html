@@ -1,8 +1,7 @@
-﻿<h1>Example 4</h1>
+﻿<h1>Camel</h1>
 <p>
-    This example shows how you use the binary Messages. The file you select and send distributed to all connected clients. To test, you can open a ten a browser (incognio)
+    A simple file share, the selected file is distributed to all connected clients.
 </p>
-<hr/>
 <label>Select a file</label>
 <input type="file" data-bind-file="" data-ng-model="theFile"/>
 <div ng-show="theFile">
@@ -11,7 +10,6 @@
     {{theFile.type}}<br/>
     <button ng-click="shareFile()">Share file</button>
 </div>
-<hr />
 <h2>Files recieved</h2>
 <hr/>
     <ul >

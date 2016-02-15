@@ -1,0 +1,15 @@
+﻿<h2>Spider</h2>
+<div class="chatform">
+    <pre>
+{{spider.message | json}}
+</pre>
+    <input placeholder="enter something and hit return..."
+           type="text" ng-model="spider.message.text" ng-keyup="
+           spider.sendMessage($event.keyCode)"/>
+</div>
+<div class="chatmessages" ng>
+    <p ng-repeat="msg in spider.messages">
+        <span>{{msg.sender}}</span>
+        {{msg.message}}
+    </p>
+</div>
