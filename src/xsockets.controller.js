@@ -475,7 +475,7 @@ if ("angular" in window) {
                                     controllerInstance.onclose();
                             });
                             registerListener(uuid, eventType.controller.onError, controller, function (err) {
-                                if (instance.onerror)
+                                if (controllerInstance.onerror)
                                     controllerInstance.onerror(err, controller);
                             });
                             if (arguments[1] instanceof Array) {
